@@ -146,3 +146,6 @@ keys/*
 # But allow documentation
 !keys/README.md
 !keys/.gitkeep
+
+# local deployment planning docs (not part of the fork deliverable)
+docs/
