@@ -14,7 +14,7 @@ A **centralized authentication system** with a separate **HRM application**, dem
 > for this task's submission — read this first, before the generic setup docs below.
 
 > [!TIP]
-> **Live URL:** `http://prasad-1.ignorelist.com` (Auth Service only)
+> **Live URL:** `https://prasad-1.ignorelist.com` (Auth Service only)
 
 > [!WARNING]
 > **What's deployed vs. what's just described:** only the Auth Service in this

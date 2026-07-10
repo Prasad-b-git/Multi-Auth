@@ -5,7 +5,7 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://prasad-1.ignorelist.com", "type": "string" },
+    { "key": "baseUrl", "value": "https://prasad-1.ignorelist.com", "type": "string" },
     { "key": "clientId", "value": "hrm-app", "type": "string" },
     { "key": "clientSecret", "value": "", "type": "string" },
     { "key": "crmClientId", "value": "crm-app", "type": "string" },
