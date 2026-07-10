@@ -28,7 +28,7 @@ pipeline {
     JWT_REFRESH_TOKEN_EXPIRE = "604800"
     HRM_CLIENT_ID            = "hrm-app"
     CRM_CLIENT_ID            = "crm-app"
-    DB_SSL                   = "false"   // set "true" when pointing at managed RDS
+    DB_SSL                   = "true"    // pointed at managed RDS (see decision notes: rejectUnauthorized:false — encrypted, not CA-verified)
   }
 
   stages {
