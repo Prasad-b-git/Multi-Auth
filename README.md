@@ -8,17 +8,22 @@ A **centralized authentication system** with a separate **HRM application**, dem
 
 ## 🚀 Production Deployment (this instance)
 
-Everything below this section describes the **general, hypothetical multi-service
-pattern** this repo demonstrates. This section describes what is **actually running**
-for this task's submission — read this first.
+> [!IMPORTANT]
+> Everything **below this section** describes the general, hypothetical multi-service
+> pattern this repo demonstrates. **This section** describes what is actually running
+> for this task's submission — read this first, before the generic setup docs below.
 
-**Live URL:** `http://prasad-1.ignorelist.com` (Auth Service only)
+> [!TIP]
+> **Live URL:** `http://prasad-1.ignorelist.com` (Auth Service only)
 
-**What's deployed vs. what's just described:** only the Auth Service in this
-repository is deployed. There is no `HRM_AuthApp` directory anywhere in this repo and
-no HRM/CRM app is running — the architecture diagram, "HRM App (Port 5001)" section,
-and salary-CRUD endpoints further down describe the *pattern* this Auth Service is
-designed to support, not something that exists in this deployment. What is real and
+> [!WARNING]
+> **What's deployed vs. what's just described:** only the Auth Service in this
+> repository is deployed. There is no `HRM_AuthApp` directory anywhere in this repo and
+> no HRM/CRM app is running — the architecture diagram, "HRM App (Port 5001)" section,
+> and salary-CRUD endpoints further down describe the *pattern* this Auth Service is
+> designed to support, not something that exists in this deployment.
+
+What is real and
 live: the five `/auth/*` endpoints below, and two registered clients (`hrm-app`,
 `crm-app`) that both authenticate successfully against this one running service — see
 `postman/Multi-Auth.postman_collection.json` for ready-to-run requests against
