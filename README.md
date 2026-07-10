@@ -6,7 +6,66 @@ A **centralized authentication system** with a separate **HRM application**, dem
 
 ---
 
-## 🏗️ Architecture Overview
+## 🚀 Production Deployment (this instance)
+
+Everything below this section describes the **general, hypothetical multi-service
+pattern** this repo demonstrates. This section describes what is **actually running**
+for this task's submission — read this first.
+
+**Live URL:** `http://prasad-1.ignorelist.com` (Auth Service only)
+
+**What's deployed vs. what's just described:** only the Auth Service in this
+repository is deployed. There is no `HRM_AuthApp` directory anywhere in this repo and
+no HRM/CRM app is running — the architecture diagram, "HRM App (Port 5001)" section,
+and salary-CRUD endpoints further down describe the *pattern* this Auth Service is
+designed to support, not something that exists in this deployment. What is real and
+live: the five `/auth/*` endpoints below, and two registered clients (`hrm-app`,
+`crm-app`) that both authenticate successfully against this one running service — see
+`postman/Multi-Auth.postman_collection.json` for ready-to-run requests against
+production.
+
+**Infrastructure:**
+- **Process manager:** PM2 (not `npm run dev`), running as the `jenkins` OS user,
+  persisted across reboots via a `pm2-jenkins` systemd unit (`pm2 startup` + `pm2 save`).
+- **Reverse proxy:** Nginx routes `prasad-1.ignorelist.com` → `127.0.0.1:5000` by
+  `Host` header. Full Nginx/port-inventory/DB-strategy/IAM write-up (shared across
+  both apps in this task) lives in `DEPLOYMENT.md` in the `deployment-assessment`
+  (Application 1) repository.
+- **Database:** AWS RDS PostgreSQL — a dedicated `auth_service` database with its own
+  least-privileged role (`authapp`), fully separate from Application 1's
+  `products_db` on the same RDS instance (see `DEPLOYMENT.md` §3 for the shared-vs-
+  separate-instance trade-off reasoning). `DB_SSL=true`; the connection is encrypted
+  but not CA-certificate-verified — a known, documented trade-off (`DEPLOYMENT.md` §3)
+  since this app's `pg` driver isn't wired up with the RDS CA bundle.
+- **CI/CD:** the `Jenkinsfile` committed to this repo runs: capture last known-good
+  commit → checkout → `npm install` + `prisma generate` → write `.env` fresh from
+  Jenkins credentials → `prisma migrate deploy` (fails the build before any restart
+  if a migration is broken) → PM2 reload/start → health check (5 retries, 3s apart,
+  2s timeout each; healthy = HTTP 200 **and** body containing `"status":true`) →
+  automatic rollback to the last known-good commit if health never passes.
+
+**Secrets:** `DATABASE_URL`, `JWT_PRIVATE_KEY`, `JWT_PUBLIC_KEY`, `HRM_CLIENT_SECRET`,
+`CRM_CLIENT_SECRET` live only in the Jenkins credential store (`multiauth-db-url`,
+`multiauth-jwt-private`, `multiauth-jwt-public`, `multiauth-hrm-secret`,
+`multiauth-crm-secret`), injected via the Jenkinsfile's `environment {}` block, and
+written fresh to a gitignored, mode-600 `.env` on every deploy. Never committed —
+confirmed via a full `git log -p --all` scan of this repo before submission.
+
+**Known limitation (recorded, not hidden):** `pm2 reload --update-env` does not
+reliably pick up a changed `.env` value once that variable is already present in
+PM2's saved process environment (`dotenv` skips vars already set). Hit this directly
+during the RDS migration — a `DB_SSL` flip wasn't picked up by `--update-env` and
+required a full `pm2 delete` + `pm2 start` instead. Worth knowing if a future env
+change doesn't seem to take effect after a normal reload.
+
+**Verified working (2026-07-10):** all 5 Auth Service endpoints exercised end-to-end
+against production — signup, login, verify, refresh, logout — including confirming
+that logout actually revokes the token server-side (a post-logout `/auth/verify`
+correctly returns `401`, not just a client-side cookie clear).
+
+---
+
+## 🏗️ Architecture Overview (general pattern, not all of it deployed)
 
 ```
 ┌─────────────────────┐
