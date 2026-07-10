@@ -1,0 +1,140 @@
+{
+  "info": {
+    "name": "Multi-Auth — Auth Service (Production)",
+    "description": "Live Auth Service deployed from this repo. Only the Auth Service exists in this repo/deployment — the HRM app referenced in the main README is a separate, undeployed companion project and is intentionally not represented here.\n\nSECURITY: `clientSecret`/`crmClientSecret` are left blank in this committed collection on purpose — this task's credential-handling rules disqualify any repo containing real secrets, even in a Postman file. Set the real values only in your own local environment (Collection → Variables tab, or a separate untracked Postman environment), never in a file that gets committed.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://prasad-1.ignorelist.com", "type": "string" },
+    { "key": "clientId", "value": "hrm-app", "type": "string" },
+    { "key": "clientSecret", "value": "", "type": "string" },
+    { "key": "crmClientId", "value": "crm-app", "type": "string" },
+    { "key": "crmClientSecret", "value": "", "type": "string" },
+    { "key": "testEmail", "value": "apitest1@example.com", "type": "string" },
+    { "key": "testPassword", "value": "Test@1234", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1. Signup",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-client-id", "value": "{{clientId}}" },
+          { "key": "x-client-secret", "value": "{{clientSecret}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/signup",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "signup"]
+        },
+        "description": "Registers a new user against the given client (HRM by default). Cookies are not set on signup — login next."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-client-id", "value": "{{clientId}}" },
+          { "key": "x-client-secret", "value": "{{clientSecret}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        },
+        "description": "Sets httpOnly accessToken + refreshToken cookies. Postman's cookie jar keeps these automatically for subsequent requests to the same baseUrl — no manual copying needed."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Verify",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/auth/verify",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "verify"]
+        },
+        "description": "Verifies the access token from the cookie set during Login. Returns userId/clientId/email/isActive on success, 401 if missing/expired/revoked."
+      },
+      "response": []
+    },
+    {
+      "name": "4. Refresh",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/auth/refresh",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "refresh"]
+        },
+        "description": "Uses the refreshToken cookie to rotate both tokens. Old refresh token is revoked server-side."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Logout",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/auth/logout",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "logout"]
+        },
+        "description": "Revokes the current refresh token server-side and clears cookies. Run '3. Verify' again after this — it should now return 401."
+      },
+      "response": []
+    },
+    {
+      "name": "6. Verify After Logout (expect 401)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/auth/verify",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "verify"]
+        },
+        "description": "Sanity check that logout actually revoked the token server-side, not just cleared cookies client-side. Expected: 401 Unauthorized."
+      },
+      "response": []
+    },
+    {
+      "name": "CRM client — Signup (alternate client)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-client-id", "value": "{{crmClientId}}" },
+          { "key": "x-client-secret", "value": "{{crmClientSecret}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"CRM Test User\",\n  \"email\": \"crmtest1@example.com\",\n  \"password\": \"Test@1234\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/signup",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "signup"]
+        },
+        "description": "Demonstrates the second registered client (crm-app) works identically and independently of the hrm-app client — same Auth Service, different client credentials, different token clientId claim."
+      },
+      "response": []
+    }
+  ]
+}
